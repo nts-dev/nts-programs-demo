@@ -54,7 +54,7 @@ grid_1.attachEvent('onRowSelect', onGrid1RowSelect);
 function onDocumentRibbonClick(id) {
 
     if (id === 'new') {
-        openUploadWindow(0, 0);
+       openUploadWindow(0, 0);
     }
 
     if (id === 'delete') {
@@ -288,7 +288,7 @@ function openUploadWindow(reimport, doc_id) {
             });
         }
         var myUploader = form_2.getUploader("myFiles");
-        myUploader.setURL("controller/upload.php?action=1&reimport=" + reimport + "&doc_id=" + doc_id + "&server=" + server_id);
+        myUploader.setURL("controller/upload.php?action=1&reimport=" + reimport + "&doc_id=" + doc_id + "&server=" + server_id+"&user_id="+ user_id);
     });
 
     form_2.attachEvent("onUploadComplete", function (count) {
@@ -324,7 +324,8 @@ function openUploadWindow(reimport, doc_id) {
                         doc_id: doc_id,
                         url: url,
                         details: details,
-                        server: server_id
+                        server: server_id,
+                        user_id:user_id
                     };
                     window_4.progressOn();
                     $.post(baseURL + "controller/upload.php?action=2", postdata, function (data) {
@@ -364,9 +365,9 @@ function openUploadWindow(reimport, doc_id) {
                     }, "json");
                 } else {
                     dhtmlx.alert({
-                        title: 'Error!',
+                        title: 'Missing Document!',
                         expire: 2000,
-                        text: "Add a google document link and try again!"
+                        text: "Add a google document link or drag and upload google zip file and try again!"
                     });
                 }
             }
@@ -527,7 +528,7 @@ function exportToMoodle(doc_id) {
                     }
                 }
             } else {
-                dhtmlx.alert({title: 'Error!', text: data[item].text});
+                dhtmlx.alert({title: data[item].errorMessage, text: data[item].text});
             }
         }
 

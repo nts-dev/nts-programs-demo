@@ -1,8 +1,8 @@
 <?php
 
-ini_set('display_errors', '1');
+ini_set('display_errors', '0');
 header("Access-Control-Allow-Origin: *");
-ini_set('max_execution_time', 1000);
+ini_set('max_execution_time', 0);
 include 'config.php';
 include 'curl.php';
 require_once '../vendor/autoload.php';
@@ -44,6 +44,7 @@ switch ($action) {
             $reimport = filter_input(INPUT_GET, 'reimport');
             $doc_id = filter_input(INPUT_GET, 'doc_id');
             $server = filter_input(INPUT_GET, 'server', FILTER_SANITIZE_NUMBER_INT);
+            $user_id = filter_input(INPUT_GET, 'user_id', FILTER_SANITIZE_NUMBER_INT);
 
             if ($_FILES["file"]["name"]) {
                 $filename = $_FILES["file"]["name"];
@@ -123,7 +124,7 @@ switch ($action) {
             }
         }
         catch (Exception $e){
-            echo json_encode(array('response' => false, 'text' =>$e ));
+            echo json_encode(array('response' => false, 'text' =>$e->getMessage()));
         }
 
         break;
@@ -137,6 +138,7 @@ switch ($action) {
             $details = filter_input(INPUT_POST, 'details');
 
             $server = filter_input(INPUT_POST, 'server', FILTER_SANITIZE_NUMBER_INT);
+            $user_id = filter_input(INPUT_POST, 'user_id', FILTER_SANITIZE_NUMBER_INT);
             $url = $fileId;
             $fileId = explode("d/", $fileId);
 
@@ -152,7 +154,6 @@ switch ($action) {
 
             $fileId = explode("/", $fileId);
             $fileId = $fileId[0];
-
             $client = getClient();
 
             $docName = getDocumentName($client, $fileId);
@@ -161,30 +162,23 @@ switch ($action) {
                 $content = getContent($client, $fileId);
 
             if ($content) {
-
-
                 $check = readGoogleDocUrl($content);
-
                 if (!$checkSections)
                     echo json_encode(array('response' => true, 'server' => $server, 'text' => 'Your document has been extracted successfully!'));
 
                 if ($reimport == 1) {
-
-
                     if (deleteNonUpdate())
                         if (bChanged())
                             if (bInsert())
                                 if (bUpdate())
                                     bDelete();
-
-
                 }
 
             }
 
         }
         catch (Exception $e){
-            echo json_encode(array('response' => false, 'text' =>$e ));
+            echo json_encode(array('response' => false, 'text' =>$e->getMessage() ));
         }
         break;
     default:
@@ -253,7 +247,7 @@ function getDocumentName($client, $fileId)
     $doc = $service->documents->get($fileId);
 
 
-    return $doc->getTitle();;
+    return $doc->getTitle();
 
 }
 
@@ -442,7 +436,9 @@ global $strContent,$reimport;
     }
     $imageCounter = 0;
     foreach ($imagesArray as $image) {
-      downloadImages($image, $docFolder, $imageCounter++);
+        if($image) {
+            downloadImages($image, $docFolder, $imageCounter++);
+        }
     }
     readUrlHeaders($strContent);
 }
@@ -461,7 +457,10 @@ function getImages($content)
 function downloadImages($url, $docFolder, $imageCounter)
 {
     global $strContent,$docName;
-    $content = file_get_contents($url);
+    $opts = array('http'=>array('header' => "User-Agent:MyAgent/1.0\r\n"));
+    $context = stream_context_create($opts);
+    $content = file_get_contents($url,false,$context);
+
     $fp = fopen($docFolder ."/image" . $imageCounter . ".png", "w");
     fwrite($fp, $content);
     fclose($fp);
@@ -709,7 +708,9 @@ function insertToArchive($docName, $dbc, $reimport, $doc_id, $content)
     global $url;
     global $server;
     global $details;
+    global $user_id;
 
+   mysqli_query($dbc, 'SET @@global.max_allowed_packet = ' . 500 * 1024 * 1024)or die(mysqli_error($dbc));
 
     $docName = explode("(", $docName);
     $docName = $docName[0];
@@ -724,7 +725,6 @@ function insertToArchive($docName, $dbc, $reimport, $doc_id, $content)
         if (!$result) {
 
             print_r("{state: false, name:'" . str_replace("'", "\\'", "Problem") . "', extra: {info: ' '}}");
-
             return;
         }
 
@@ -746,7 +746,8 @@ WHERE toc.doc_id= ' . $doc_id . ' ON DUPLICATE KEY UPDATE id=values(id),date_tim
 
     } else {
         $dateTime = date("d.m.Y") . " " . date("h:i:sa");
-        $query_insert_document = 'INSERT INTO document (doc_name, content,document_url,date_time,details) VALUES ("' . $docName . '","' . mysqli_real_escape_string($dbc, $content) . '", "' . $url . '", "' . $dateTime . '", "' . $details . '")
+
+        $query_insert_document = 'INSERT INTO document (doc_name, content,document_url,date_time,emp_id,details) VALUES ("' . $docName . '","' . mysqli_real_escape_string($dbc, $content) . '", "' . $url . '", "' . $dateTime . '", "' . $user_id . '", "' . $details . '")
     ON DUPLICATE KEY UPDATE content=values(content)';
 
         $result = mysqli_query($dbc, $query_insert_document) or die(mysqli_error($dbc));
@@ -888,7 +889,10 @@ function tableOfContents($key, $chapter_id, $chapter_name, $contentPerChapter, $
         $section = $section[0];
         if ($section) {
 
+            mysqli_query($dbc, 'SET @@global.max_allowed_packet = ' . 500 * 1024 * 1024)or die(mysqli_error($dbc));
+
             if (strpos($key, '</h1>') !== false) {
+
 
                 $parent_id = 0;
                 $counter_l1++;
@@ -900,7 +904,6 @@ function tableOfContents($key, $chapter_id, $chapter_name, $contentPerChapter, $
                 $parent_id = mysqli_insert_id($dbc);
                 $counter_l2 = 0;
                 $qid1 = $parent_id;
-
 
             } else if (strpos($key, '</h2>') !== false) {
                 $counter_l2++;

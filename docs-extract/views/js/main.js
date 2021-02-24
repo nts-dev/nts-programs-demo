@@ -29,6 +29,7 @@ var doc_name = null;
 var doc_url;
 var description;
 var server_id;
+var user_id = null;
 
 /************** Get and set  windows dimensions******************/
 if (typeof (main_layout.innerWidth) == 'number') {
@@ -53,6 +54,9 @@ if (typeof (main_layout.innerWidth) == 'number') {
 
 }
 
+var queryString = window.location.search;
+var urlParams = new URLSearchParams(queryString);
+user_id = urlParams.get('eid');
 
 /************** courses ******************/
 var a = main_layout.cells('a');
