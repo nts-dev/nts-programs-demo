@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Scheduler</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
+
+        <!-- DHTMLX Library -->
+        <script src="codebase/scheduler/dhtmlxscheduler_2.js"></script>
+        <script src="codebase/scheduler/dhtmlxscheduler_units.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="codebase/scheduler/dhtmlxscheduler_material.css">
+        <script src="codebase/jquery/jquery-3.5.1.min.js"></script>
+        <style type="text/css" >
+            html, body{
+                margin:0px;
+                padding:0px;
+                height:100%;
+                overflow:hidden;
+            }
+        </style>
+        <script type="text/javascript" charset="utf-8">
+            function init() {
+
+				var loc = window.location.pathname;
+				var dir_name = loc.substring(0, loc.lastIndexOf('/'));
+				var appUrl = "http://" + window.location.hostname + dir_name + "/";
+                var baseUrl = appUrl + "project-api/public/api/v1/";
+
+                $.get(baseUrl + "schedule/users", function (response) {
+
+                    var sections = response;
+                    scheduler.locale.labels.unit_tab = "Unit"
+                    scheduler.locale.labels.section_custom = "Section";
+                    scheduler.config.details_on_create = true;
+                    scheduler.config.details_on_dblclick = true;
+
+                    scheduler.config.lightbox.sections = [
+                        {name: "description", height: 130, map_to: "text", type: "textarea", focus: true},
+                        {name: "custom", height: 23, type: "select", options: sections, map_to: "section_id"},
+                        {name: "time", height: 72, type: "time", map_to: "auto"}
+                    ]
+
+                    scheduler.createUnitsView({
+                        name: "unit",
+                        property: "section_id",
+                        list: sections
+                    });
+                    scheduler.config.multi_day = true;
+
+                    scheduler.init('scheduler_here', new Date(), "unit");
+                     scheduler.load(baseUrl + "schedule/events");
+                });
+
+
+            }
+        </script>
+    </head>
+
+    <body onload="init();">
+        <div id="scheduler_here" class="dhx_cal_container" style='width:100%; height:100%;'>
+            <div class="dhx_cal_navline">
+                <div class="dhx_cal_prev_button">&nbsp;</div>
+                <div class="dhx_cal_next_button">&nbsp;</div>
+                <div class="dhx_cal_today_button"></div>
+                <div class="dhx_cal_date"></div>
+                <div class="dhx_cal_tab" name="day_tab" style="right:204px;"></div>
+                <div class="dhx_cal_tab" name="week_tab" style="right:140px;"></div>
+                <div class="dhx_cal_tab" name="unit_tab" style="right:280px;"></div>
+                <div class="dhx_cal_tab" name="month_tab" style="right:76px;"></div>
+            </div>
+            <div class="dhx_cal_header">
+            </div>
+            <div class="dhx_cal_data">
+            </div>
+        </div>
+    </body>
+</html>

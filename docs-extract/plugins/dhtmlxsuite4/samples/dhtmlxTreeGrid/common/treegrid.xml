@@ -1,0 +1,46 @@
+[
+	{type: "settings", position: "label-left", labelWidth: 130, inputWidth: 120},
+        
+	{type: "fieldset", label: "", inputWidth:700, list:[
+                
+                
+   //     {type: "label", labelWidth: "400",name:"lblAdres", label: "Selecteer een adres in de onderstaande lijst om deze te wijzigen. ",inputWidth: 0}, 
+            
+        {type: "hidden", labelWidth: "150", label: "Delivery Addess Id",name:"deleveryaddressid", value: "",inputWidth: 180},
+        
+        {type: "input", labelWidth: "150", label: "Geselecteerd adres ",name:"selectedades", value: "",inputWidth: 180},
+        
+       // {type: "label", labelWidth: "900",name:"lblSel", label: "Het door u geselecteerde afleveradres is aan reeds afgehandelde orders gekoppeld. U kunt deze daarom niet meer wijzigen. U kunt het plusje hierboven aanklikken om een nieuw adres aan te maken. ",inputWidth: 0}, 
+
+          
+         {type: "label",name:"lblOp", labelWidth: "400", label: "",inputWidth: 0}, //Let op: dit is uw standaard afleveradres 
+        
+        {type: "input", labelWidth: "150", label: "Voornaam ",name:"voornaam", value: "",inputWidth: 180},
+
+         {type: "input", labelWidth: "150", label: "Achternaam ",name:"achternaam", value: "",inputWidth: 180},
+         
+         {type: "input", labelWidth: "150", label: "Bedrijfsnaam  ",name:"bedrijsfnaam", value: "",inputWidth: 180},
+         
+         {type: "input", labelWidth: "150", label: "Contactpersoon  ",name:"contactperson", value: "",inputWidth: 180},
+
+
+         {type: "input", labelWidth: "150", label: "Adres ",name:"adres", value: "",inputWidth: 180},
+
+         {type: "input", labelWidth: "150", label: "Postcode ",name:"postcode", value: "",inputWidth: 180},
+         
+         {type: "input", labelWidth: "150", label: "Woonplaats ",name:"woonplaats", value: "",inputWidth: 180},
+
+         {type: "combo", labelWidth: "150", label: "Land",name:"land", value: "",inputWidth: 180},  
+         
+        /* {type: "fieldset", label: "", inputWidth:910, list:[
+           
+          {type: "input", labelWidth: "280", position: "label-top",name:"wachtwoord", label: "Voer uw wachtwoord in", value: "",inputWidth: 180},
+          {type: "label",name:"lblVul", labelWidth: "500", label: "",inputWidth: 180},
+          ]},*/
+      {type: "label",name:"lblVelden", labelWidth: "400", label: "Velden gemarkeerd met een exclamation zijn verplicht",inputWidth: 0},
+      ]},
+    
+   {type: "fieldset", label: "", inputWidth:700, list:[
+    {type: "button",name:"afleveradres_gaan", value: "Verder gaan"}       
+   ]}
+]
