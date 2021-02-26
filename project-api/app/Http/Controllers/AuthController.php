@@ -6,6 +6,9 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -64,8 +67,13 @@ class AuthController extends Controller
 
         if (!Auth::attempt($credentials))
             return response()->json([
-                'message' => 'Unauthorized'
-            ], 401);
+                'message' => 'Wrong username or password',
+                'success' => false
+            ]);
+//            return response()->json([
+//                'message' => 'Unauthorized'
+//            ], 401);
+
 
         $user = $request->user();
         $tokenResult = $user->createToken('Personal Access Token');
@@ -76,6 +84,8 @@ class AuthController extends Controller
         $token->save();
 
         return response()->json([
+            'success' => true,
+            'message' => 'Login Successful',
             'access_token' => $tokenResult->accessToken,
             'token_type' => 'Bearer',
             'expires_at' => Carbon::parse(
@@ -105,5 +115,44 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    public function update(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|string|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return Response::json([
+                'message' => 'The given password is invalid or confirmation password does not match',
+                'success' => false
+            ]);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->get('current_password'), $user->password))
+            return Response::json([
+                'message' => 'Current password is incorrect',
+                'success' => false
+            ]);
+
+        $password = $request->get('new_password');
+        if ($password != "") {
+            $user->password = bcrypt($password);
+        }
+        $user->save();
+        $message = 'Password successfully changed';
+
+        $response = Response::json([
+            'message' => $message,
+            'user' => $user,
+            'success' => true
+        ], 200);
+
+        return $response;
     }
 }
